@@ -57,9 +57,10 @@ export async function approveChange(changeId: string) {
   const payload = change.payload as Record<string, unknown>;
 
   if (change.change_type === 'add_person') {
-    const { parent_ids, spouse_ids, ...personData } = payload as PersonFormValues & {
+    const { parent_ids, spouse_ids, child_ids, ...personData } = payload as PersonFormValues & {
       parent_ids: string[];
       spouse_ids: string[];
+      child_ids: string[];
     };
 
     const { data: newPerson, error: insertError } = await admin
@@ -70,7 +71,6 @@ export async function approveChange(changeId: string) {
 
     if (insertError || !newPerson) throw new Error(insertError?.message ?? 'Insert failed');
 
-    // Insert parent relationships
     if (parent_ids?.length) {
       await admin.from('relationships').insert(
         parent_ids.map((parentId: string) => ({
@@ -81,7 +81,6 @@ export async function approveChange(changeId: string) {
       );
     }
 
-    // Insert spouse relationships
     if (spouse_ids?.length) {
       await admin.from('relationships').insert(
         spouse_ids.map((spouseId: string) => ({
@@ -92,11 +91,20 @@ export async function approveChange(changeId: string) {
       );
     }
 
-    // Recalculate generation numbers
+    if (child_ids?.length) {
+      await admin.from('relationships').insert(
+        child_ids.map((childId: string) => ({
+          person_a_id: newPerson.id,
+          person_b_id: childId,
+          relationship_type: 'biological_child' as const,
+        }))
+      );
+    }
+
     await admin.rpc('recalculate_generations');
   } else if (change.change_type === 'edit_person') {
     if (!change.target_person_id) throw new Error('No target person');
-    const { parent_ids: _p, spouse_ids: _s, ...personData } = payload as Record<string, unknown>;
+    const { parent_ids: _p, spouse_ids: _s, child_ids: _c, ...personData } = payload as Record<string, unknown>;
 
     await admin
       .from('persons')

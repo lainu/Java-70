@@ -22,7 +22,7 @@ export async function addPersonDirect(values: PersonFormValues) {
     .single();
   if (!profile?.is_admin) throw new Error('Forbidden');
 
-  const { parent_ids, spouse_ids, ...personData } = values;
+  const { parent_ids, spouse_ids, child_ids, ...personData } = values;
 
   const { data: newPerson, error } = await admin
     .from('persons')
@@ -48,6 +48,16 @@ export async function addPersonDirect(values: PersonFormValues) {
         person_a_id: newPerson.id,
         person_b_id: spouseId,
         relationship_type: 'spouse' as const,
+      }))
+    );
+  }
+
+  if (child_ids?.length) {
+    await admin.from('relationships').insert(
+      child_ids.map((childId) => ({
+        person_a_id: newPerson.id,
+        person_b_id: childId,
+        relationship_type: 'biological_child' as const,
       }))
     );
   }

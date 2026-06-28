@@ -40,6 +40,7 @@ export default function PersonForm({ mode, defaultValues, targetPersonId, allPer
       is_root: false,
       parent_ids: [],
       spouse_ids: [],
+      child_ids: [],
       ...defaultValues,
     },
   });
@@ -92,7 +93,7 @@ export default function PersonForm({ mode, defaultValues, targetPersonId, allPer
         <input
           {...register('name_ml')}
           className="w-full border rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary font-ml"
-          placeholder="ജോൺ കുര്യൻ"
+          placeholder="جونی کوریان"
           lang="ml"
         />
       </div>
@@ -161,6 +162,17 @@ export default function PersonForm({ mode, defaultValues, targetPersonId, allPer
           max={10}
           onChange={(ids) => setValue('spouse_ids', ids)}
           placeholder={t('addSpouse')}
+        />
+      </div>
+
+      {/* Children */}
+      <div>
+        <label className="block text-sm font-medium mb-1">{t('children')}</label>
+        <PersonMultiSelect
+          persons={allPersons}
+          max={50}
+          onChange={(ids) => setValue('child_ids', ids)}
+          placeholder="Add child"
         />
       </div>
 

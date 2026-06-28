@@ -16,6 +16,7 @@ export const personSchema = z
     // Relationship fields included in submission payload
     parent_ids: z.array(z.string().uuid()).max(2).default([]),
     spouse_ids: z.array(z.string().uuid()).default([]),
+    child_ids: z.array(z.string().uuid()).default([]),
   })
   .refine(
     (data) => {

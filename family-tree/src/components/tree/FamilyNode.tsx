@@ -31,8 +31,6 @@ export default function FamilyNode({ node, person, house, isSelected, onClick }:
       style={{
         width: 152,
         height: 92,
-        left: node.left * 180,
-        top: node.top * 120,
         backgroundColor: style.bg,
         borderColor: style.border,
       }}
