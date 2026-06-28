@@ -70,10 +70,7 @@ export default function LoginForm() {
       </button>
 
       <p className="text-center text-sm text-muted-foreground">
-        {t('noAccount')}{' '}
-        <Link href={`/${locale}/auth/register`} className="text-primary hover:underline">
-          {t('register')}
-        </Link>
+        Registration is by invite only.
       </p>
     </form>
   );
