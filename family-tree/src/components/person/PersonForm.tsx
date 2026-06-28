@@ -93,7 +93,7 @@ export default function PersonForm({ mode, defaultValues, targetPersonId, allPer
         <input
           {...register('name_ml')}
           className="w-full border rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary font-ml"
-          placeholder="جونی کوریان"
+          placeholder="ജോൺ കുര്യൻ"
           lang="ml"
         />
       </div>
@@ -243,32 +243,44 @@ function PersonMultiSelect({
         (p.name_ml ?? '').includes(query))
   );
 
-  function toggle(id: string) {
-    const next = selected.includes(id)
-      ? selected.filter((s) => s !== id)
-      : selected.length < max
-        ? [...selected, id]
-        : selected;
+  // Label for a selected entry: either a person name or the inline-create name
+  function labelFor(ref: string) {
+    if (ref.startsWith('new:')) return ref.slice(4) + ' (new)';
+    return persons.find((p) => p.id === ref)?.name_en ?? ref;
+  }
+
+  function add(ref: string) {
+    if (selected.includes(ref) || selected.length >= max) return;
+    const next = [...selected, ref];
+    setSelected(next);
+    onChange(next);
+    setQuery('');
+  }
+
+  function remove(ref: string) {
+    const next = selected.filter((s) => s !== ref);
     setSelected(next);
     onChange(next);
   }
+
+  const trimmed = query.trim();
+  // Show "create" option only when query doesn't exactly match an existing name
+  const exactMatch = persons.some((p) => p.name_en.toLowerCase() === trimmed.toLowerCase());
+  const showCreate = trimmed.length > 1 && !exactMatch;
 
   return (
     <div className="space-y-1">
       {selected.length > 0 && (
         <div className="flex flex-wrap gap-1">
-          {selected.map((id) => {
-            const p = persons.find((p) => p.id === id);
-            return (
-              <span
-                key={id}
-                className="text-xs bg-primary/10 text-primary rounded-full px-2 py-0.5 flex items-center gap-1 cursor-pointer"
-                onClick={() => toggle(id)}
-              >
-                {p?.name_en} ×
-              </span>
-            );
-          })}
+          {selected.map((ref) => (
+            <span
+              key={ref}
+              className="text-xs bg-primary/10 text-primary rounded-full px-2 py-0.5 flex items-center gap-1 cursor-pointer"
+              onClick={() => remove(ref)}
+            >
+              {labelFor(ref)} ×
+            </span>
+          ))}
         </div>
       )}
       {selected.length < max && (
@@ -279,20 +291,29 @@ function PersonMultiSelect({
             placeholder={placeholder}
             className="w-full border rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
           />
-          {query && (
+          {trimmed && (
             <div className="border rounded max-h-40 overflow-y-auto">
               {filtered.slice(0, 20).map((p) => (
                 <button
                   key={p.id}
                   type="button"
-                  onClick={() => { toggle(p.id); setQuery(''); }}
+                  onClick={() => add(p.id)}
                   className="w-full text-left px-3 py-2 text-sm hover:bg-slate-50 border-b last:border-b-0"
                 >
                   {p.name_en}
                   {p.name_ml && <span className="text-muted-foreground ml-2 font-ml text-xs">{p.name_ml}</span>}
                 </button>
               ))}
-              {filtered.length === 0 && (
+              {showCreate && (
+                <button
+                  type="button"
+                  onClick={() => add(`new:${trimmed}`)}
+                  className="w-full text-left px-3 py-2 text-sm text-primary font-medium hover:bg-primary/5 border-b last:border-b-0"
+                >
+                  + Create &quot;{trimmed}&quot;
+                </button>
+              )}
+              {filtered.length === 0 && !showCreate && (
                 <p className="text-muted-foreground text-xs px-3 py-2">No results</p>
               )}
             </div>

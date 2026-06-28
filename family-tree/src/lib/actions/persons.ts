@@ -5,6 +5,32 @@ import { createClient } from '@/lib/supabase/server';
 import { createAdminClient } from '@/lib/supabase/admin';
 import type { PersonFormValues } from '@/lib/validations/person';
 
+type AdminClient = ReturnType<typeof createAdminClient>;
+
+async function resolvePersonRefs(
+  refs: string[],
+  admin: AdminClient,
+  userId: string
+): Promise<string[]> {
+  const resolved: string[] = [];
+  for (const ref of refs) {
+    if (ref.startsWith('new:')) {
+      const name = ref.slice(4).trim();
+      if (!name) continue;
+      const { data, error } = await admin
+        .from('persons')
+        .insert({ name_en: name, gender: 'unknown', is_alive: true, created_by: userId, approved_by: userId })
+        .select('id')
+        .single();
+      if (error || !data) throw new Error(`Failed to create person "${name}": ${error?.message}`);
+      resolved.push(data.id);
+    } else {
+      resolved.push(ref);
+    }
+  }
+  return resolved;
+}
+
 /** Admin-only: add a person directly without the approval queue. */
 export async function addPersonDirect(values: PersonFormValues) {
   const supabase = await createClient();
@@ -32,9 +58,13 @@ export async function addPersonDirect(values: PersonFormValues) {
 
   if (error || !newPerson) throw new Error(error?.message ?? 'Insert failed');
 
-  if (parent_ids?.length) {
+  const resolvedParents = await resolvePersonRefs(parent_ids ?? [], admin, user.id);
+  const resolvedSpouses = await resolvePersonRefs(spouse_ids ?? [], admin, user.id);
+  const resolvedChildren = await resolvePersonRefs(child_ids ?? [], admin, user.id);
+
+  if (resolvedParents.length) {
     await admin.from('relationships').insert(
-      parent_ids.map((parentId) => ({
+      resolvedParents.map((parentId) => ({
         person_a_id: parentId,
         person_b_id: newPerson.id,
         relationship_type: 'biological_child' as const,
@@ -42,9 +72,9 @@ export async function addPersonDirect(values: PersonFormValues) {
     );
   }
 
-  if (spouse_ids?.length) {
+  if (resolvedSpouses.length) {
     await admin.from('relationships').insert(
-      spouse_ids.map((spouseId) => ({
+      resolvedSpouses.map((spouseId) => ({
         person_a_id: newPerson.id,
         person_b_id: spouseId,
         relationship_type: 'spouse' as const,
@@ -52,9 +82,9 @@ export async function addPersonDirect(values: PersonFormValues) {
     );
   }
 
-  if (child_ids?.length) {
+  if (resolvedChildren.length) {
     await admin.from('relationships').insert(
-      child_ids.map((childId) => ({
+      resolvedChildren.map((childId) => ({
         person_a_id: newPerson.id,
         person_b_id: childId,
         relationship_type: 'biological_child' as const,

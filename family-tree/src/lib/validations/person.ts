@@ -13,10 +13,10 @@ export const personSchema = z
     biography_ml: z.string().max(5000).optional().nullable(),
     house_id: z.string().uuid().optional().nullable(),
     is_root: z.boolean().default(false),
-    // Relationship fields included in submission payload
-    parent_ids: z.array(z.string().uuid()).max(2).default([]),
-    spouse_ids: z.array(z.string().uuid()).default([]),
-    child_ids: z.array(z.string().uuid()).default([]),
+    // Relationship fields — each entry is either a UUID (existing person) or "new:<name>" (inline create)
+    parent_ids: z.array(z.string().min(1)).max(2).default([]),
+    spouse_ids: z.array(z.string().min(1)).default([]),
+    child_ids: z.array(z.string().min(1)).default([]),
   })
   .refine(
     (data) => {

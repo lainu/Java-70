@@ -6,6 +6,32 @@ import { createAdminClient } from '@/lib/supabase/admin';
 import type { Json } from '@/types/database';
 import type { PersonFormValues } from '@/lib/validations/person';
 
+type AdminClient = ReturnType<typeof createAdminClient>;
+
+async function resolvePersonRefs(
+  refs: string[],
+  admin: AdminClient,
+  userId: string
+): Promise<string[]> {
+  const resolved: string[] = [];
+  for (const ref of refs) {
+    if (ref.startsWith('new:')) {
+      const name = ref.slice(4).trim();
+      if (!name) continue;
+      const { data, error } = await admin
+        .from('persons')
+        .insert({ name_en: name, gender: 'unknown', is_alive: true, created_by: userId, approved_by: userId })
+        .select('id')
+        .single();
+      if (error || !data) throw new Error(`Failed to create person "${name}": ${error?.message}`);
+      resolved.push(data.id);
+    } else {
+      resolved.push(ref);
+    }
+  }
+  return resolved;
+}
+
 export async function submitChange(
   changeType: 'add_person' | 'edit_person' | 'add_relationship' | 'remove_relationship',
   payload: Record<string, unknown>,
@@ -71,9 +97,13 @@ export async function approveChange(changeId: string) {
 
     if (insertError || !newPerson) throw new Error(insertError?.message ?? 'Insert failed');
 
-    if (parent_ids?.length) {
+    const resolvedParents = await resolvePersonRefs(parent_ids ?? [], admin, user.id);
+    const resolvedSpouses = await resolvePersonRefs(spouse_ids ?? [], admin, user.id);
+    const resolvedChildren = await resolvePersonRefs(child_ids ?? [], admin, user.id);
+
+    if (resolvedParents.length) {
       await admin.from('relationships').insert(
-        parent_ids.map((parentId: string) => ({
+        resolvedParents.map((parentId: string) => ({
           person_a_id: parentId,
           person_b_id: newPerson.id,
           relationship_type: 'biological_child' as const,
@@ -81,9 +111,9 @@ export async function approveChange(changeId: string) {
       );
     }
 
-    if (spouse_ids?.length) {
+    if (resolvedSpouses.length) {
       await admin.from('relationships').insert(
-        spouse_ids.map((spouseId: string) => ({
+        resolvedSpouses.map((spouseId: string) => ({
           person_a_id: newPerson.id,
           person_b_id: spouseId,
           relationship_type: 'spouse' as const,
@@ -91,9 +121,9 @@ export async function approveChange(changeId: string) {
       );
     }
 
-    if (child_ids?.length) {
+    if (resolvedChildren.length) {
       await admin.from('relationships').insert(
-        child_ids.map((childId: string) => ({
+        resolvedChildren.map((childId: string) => ({
           person_a_id: newPerson.id,
           person_b_id: childId,
           relationship_type: 'biological_child' as const,
