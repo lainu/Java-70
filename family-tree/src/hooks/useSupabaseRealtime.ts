@@ -17,9 +17,9 @@ export function usePendingChangeCount() {
       .eq('status', 'pending')
       .then(({ count }) => setCount(count ?? 0));
 
-    // Subscribe to inserts and updates on pending_changes
+    const channelName = `pending-changes-count-${Math.random()}`;
     const channel = supabase
-      .channel('pending-changes-count')
+      .channel(channelName)
       .on(
         'postgres_changes',
         { event: '*', schema: 'public', table: 'pending_changes' },
