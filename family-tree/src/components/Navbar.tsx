@@ -5,13 +5,15 @@ import { useLocale, useTranslations } from 'next-intl';
 import { useAuth } from '@/hooks/useAuth';
 import { usePendingChangeCount } from '@/hooks/useSupabaseRealtime';
 import { createClient } from '@/lib/supabase/client';
-import { useRouter } from 'next/navigation';
+import { useRouter, usePathname } from 'next/navigation';
 import { TreePine, Plus, User, Settings, LogOut } from 'lucide-react';
 
 export default function Navbar() {
   const t = useTranslations('nav');
   const locale = useLocale();
   const router = useRouter();
+  const pathname = usePathname();
+  const pathWithoutLocale = pathname.replace(/^\/(en|ml)/, '') || '/tree';
   const { user, isAdmin } = useAuth();
   const pendingCount = usePendingChangeCount();
 
@@ -34,13 +36,13 @@ export default function Navbar() {
       {/* Language switcher */}
       <div className="flex gap-1 text-sm">
         <Link
-          href={`/en${typeof window !== 'undefined' ? window.location.pathname.replace(/^\/(en|ml)/, '') : '/tree'}`}
+          href={`/en${pathWithoutLocale}`}
           className={`px-2 py-1 rounded ${locale === 'en' ? 'bg-primary text-white' : 'text-muted-foreground hover:text-foreground'}`}
         >
           EN
         </Link>
         <Link
-          href={`/ml${typeof window !== 'undefined' ? window.location.pathname.replace(/^\/(en|ml)/, '') : '/tree'}`}
+          href={`/ml${pathWithoutLocale}`}
           className={`px-2 py-1 rounded ${locale === 'ml' ? 'bg-primary text-white' : 'text-muted-foreground hover:text-foreground'}`}
         >
           ML
