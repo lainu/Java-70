@@ -106,18 +106,29 @@ export default function FamilyTreeCanvas({
 
   const selectedPerson = selectedPersonId ? personMap[selectedPersonId] : null;
 
+  // react-family-tree@3.x does NOT add wrapper divs — renderNode must position each node.
   const renderTree = (node: ExtNode) => {
     const person = personMap[node.id];
     if (!person) return null;
     return (
-      <FamilyNode
+      <div
         key={node.id}
-        node={node}
-        person={person}
-        house={person.house_id ? initialHouses.find((h) => h.id === person.house_id) : undefined}
-        isSelected={selectedPersonId === node.id}
-        onClick={handleNodeClick}
-      />
+        style={{
+          position: 'absolute',
+          left: node.left * (NODE_WIDTH / 2),
+          top: node.top * (NODE_HEIGHT / 2),
+          width: NODE_WIDTH,
+          height: NODE_HEIGHT,
+        }}
+      >
+        <FamilyNode
+          node={node}
+          person={person}
+          house={person.house_id ? initialHouses.find((h) => h.id === person.house_id) : undefined}
+          isSelected={selectedPersonId === node.id}
+          onClick={handleNodeClick}
+        />
+      </div>
     );
   };
 
