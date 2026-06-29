@@ -10,6 +10,7 @@ import { focusBranch } from '@/lib/tree/focusBranch';
 import type { Person, Relationship, House } from '@/types/tree';
 import FamilyNode from './FamilyNode';
 import TreeControls from './TreeControls';
+import TreeSidebar from './TreeSidebar';
 import GenerationLegend from './GenerationLegend';
 import PersonDetailDrawer from '@/components/person/PersonDetailDrawer';
 
@@ -135,6 +136,9 @@ export default function FamilyTreeCanvas({
 
   return (
     <div className="relative w-full h-full bg-slate-50">
+      <TreeSidebar />
+      {/* Offset canvas content to leave room for the sidebar */}
+      <div className="absolute inset-0 left-[4.5rem]">
       <TransformWrapper
         ref={transformRef}
         initialScale={0.8}
@@ -186,6 +190,7 @@ export default function FamilyTreeCanvas({
           onClose={() => setSelectedPerson(null)}
         />
       )}
+      </div>
     </div>
   );
 }
