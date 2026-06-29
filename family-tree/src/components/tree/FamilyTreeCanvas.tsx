@@ -13,8 +13,8 @@ import TreeControls from './TreeControls';
 import GenerationLegend from './GenerationLegend';
 import PersonDetailDrawer from '@/components/person/PersonDetailDrawer';
 
-const NODE_WIDTH = 160;
-const NODE_HEIGHT = 100;
+const NODE_WIDTH = 200;
+const NODE_HEIGHT = 110;
 
 interface Props {
   initialPersons: Person[];

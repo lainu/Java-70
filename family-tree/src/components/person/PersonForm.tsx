@@ -149,6 +149,7 @@ export default function PersonForm({ mode, defaultValues, targetPersonId, allPer
         <PersonMultiSelect
           persons={allPersons}
           max={2}
+          initialIds={defaultValues?.parent_ids ?? []}
           onChange={(ids) => setValue('parent_ids', ids)}
           placeholder={t('addParent')}
         />
@@ -160,6 +161,7 @@ export default function PersonForm({ mode, defaultValues, targetPersonId, allPer
         <PersonMultiSelect
           persons={allPersons}
           max={10}
+          initialIds={defaultValues?.spouse_ids ?? []}
           onChange={(ids) => setValue('spouse_ids', ids)}
           placeholder={t('addSpouse')}
         />
@@ -171,6 +173,7 @@ export default function PersonForm({ mode, defaultValues, targetPersonId, allPer
         <PersonMultiSelect
           persons={allPersons}
           max={50}
+          initialIds={defaultValues?.child_ids ?? []}
           onChange={(ids) => setValue('child_ids', ids)}
           placeholder="Add child"
         />
@@ -225,15 +228,17 @@ export default function PersonForm({ mode, defaultValues, targetPersonId, allPer
 function PersonMultiSelect({
   persons,
   max,
+  initialIds = [],
   onChange,
   placeholder,
 }: {
   persons: Props['allPersons'];
   max: number;
+  initialIds?: string[];
   onChange: (ids: string[]) => void;
   placeholder: string;
 }) {
-  const [selected, setSelected] = useState<string[]>([]);
+  const [selected, setSelected] = useState<string[]>(initialIds);
   const [query, setQuery] = useState('');
 
   const filtered = persons.filter(
