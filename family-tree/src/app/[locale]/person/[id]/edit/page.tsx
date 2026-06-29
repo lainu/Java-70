@@ -1,4 +1,5 @@
 import { createAdminClient } from '@/lib/supabase/admin';
+import { createClient } from '@/lib/supabase/server';
 import { notFound } from 'next/navigation';
 import PersonForm from '@/components/person/PersonForm';
 
@@ -9,6 +10,7 @@ interface Props {
 export default async function EditPersonPage({ params }: Props) {
   const { id } = await params;
   const admin = createAdminClient();
+  const supabase = await createClient();
 
   const [{ data: person }, { data: relationships }, { data: allPersons }, { data: houses }] =
     await Promise.all([
@@ -19,6 +21,12 @@ export default async function EditPersonPage({ params }: Props) {
     ]);
 
   if (!person) notFound();
+
+  const { data: { user } } = await supabase.auth.getUser();
+  const { data: profile } = user
+    ? await supabase.from('user_profiles').select('is_admin').eq('id', user.id).single()
+    : { data: null };
+  const isAdmin = profile?.is_admin ?? false;
 
   const rels = relationships ?? [];
 
@@ -42,10 +50,12 @@ export default async function EditPersonPage({ params }: Props) {
     <div className="max-w-2xl mx-auto px-4 py-8">
       <h1 className="text-2xl font-bold mb-2">Edit Member</h1>
       <p className="text-muted-foreground text-sm mb-6">
-        Your proposed edit will be sent for admin review before going live.
+        {isAdmin
+          ? 'Changes will be applied immediately.'
+          : 'Your proposed edit will be sent for admin review before going live.'}
       </p>
       <PersonForm
-        mode="edit"
+        mode={isAdmin ? 'admin-edit' : 'edit'}
         targetPersonId={id}
         defaultValues={{
           name_en: person.name_en,

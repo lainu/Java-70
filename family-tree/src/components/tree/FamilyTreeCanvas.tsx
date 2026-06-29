@@ -13,8 +13,8 @@ import TreeControls from './TreeControls';
 import GenerationLegend from './GenerationLegend';
 import PersonDetailDrawer from '@/components/person/PersonDetailDrawer';
 
-const NODE_WIDTH = 200;
-const NODE_HEIGHT = 110;
+const NODE_WIDTH = 260;
+const NODE_HEIGHT = 130;
 
 interface Props {
   initialPersons: Person[];
@@ -119,6 +119,7 @@ export default function FamilyTreeCanvas({
           top: node.top * (NODE_HEIGHT / 2),
           width: NODE_WIDTH,
           height: NODE_HEIGHT,
+          padding: '5px 10px',
         }}
       >
         <FamilyNode

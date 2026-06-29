@@ -24,6 +24,7 @@ export default function FamilyNode({ node, person, house, isSelected, onClick }:
   const style = getGenerationStyle(person.generation_number);
   const displayName = locale === 'ml' && person.name_ml ? person.name_ml : person.name_en;
   const photoUrl = getStorageUrl(person.profile_photo);
+  const isMarriedIn = node.parents.length === 0 && !person.is_root;
 
   const years = person.birth_date
     ? `${person.birth_date.slice(0, 4)}${!person.is_alive && person.death_date ? ` – ${person.death_date.slice(0, 4)}` : ''}`
@@ -31,9 +32,9 @@ export default function FamilyNode({ node, person, house, isSelected, onClick }:
 
   return (
     <div
-      className={`tree-node w-full h-full bg-white rounded-xl overflow-hidden shadow-sm border border-gray-200 group cursor-pointer transition-all hover:shadow-md hover:-translate-y-px ${
+      className={`tree-node w-full h-full rounded-xl overflow-hidden shadow-sm border group cursor-pointer transition-all hover:shadow-md hover:-translate-y-px ${
         isSelected ? 'ring-2 ring-offset-1 shadow-md' : ''
-      }`}
+      } ${isMarriedIn ? 'bg-rose-50 border-rose-100' : 'bg-white border-gray-200'}`}
       style={{
         borderLeft: `4px solid ${style.border}`,
         ...(isSelected ? { '--tw-ring-color': style.border } as React.CSSProperties : {}),

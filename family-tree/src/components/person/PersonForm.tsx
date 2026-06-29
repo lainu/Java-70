@@ -7,11 +7,11 @@ import { useTranslations } from 'next-intl';
 import { useRouter } from 'next/navigation';
 import { personSchema, type PersonFormValues } from '@/lib/validations/person';
 import { submitChange } from '@/lib/actions/pending';
-import { addPersonDirect } from '@/lib/actions/persons';
+import { addPersonDirect, updatePersonDirect } from '@/lib/actions/persons';
 import type { Person, House } from '@/types/tree';
 
 interface Props {
-  mode: 'add' | 'edit' | 'admin-add';
+  mode: 'add' | 'edit' | 'admin-add' | 'admin-edit';
   defaultValues?: Partial<PersonFormValues>;
   targetPersonId?: string;
   allPersons: Pick<Person, 'id' | 'name_en' | 'name_ml' | 'generation_number'>[];
@@ -52,6 +52,8 @@ export default function PersonForm({ mode, defaultValues, targetPersonId, allPer
     try {
       if (mode === 'admin-add') {
         await addPersonDirect(values);
+      } else if (mode === 'admin-edit') {
+        await updatePersonDirect(targetPersonId!, values);
       } else if (mode === 'edit') {
         await submitChange('edit_person', values as unknown as Record<string, unknown>, targetPersonId);
       } else {
@@ -69,7 +71,9 @@ export default function PersonForm({ mode, defaultValues, targetPersonId, allPer
       <div className="p-4 bg-green-50 border border-green-200 rounded-lg text-green-700">
         {mode === 'admin-add'
           ? 'Member added successfully!'
-          : 'Your submission has been sent for admin review.'}
+          : mode === 'admin-edit'
+            ? 'Member updated successfully!'
+            : 'Your submission has been sent for admin review.'}
       </div>
     );
   }
@@ -209,7 +213,7 @@ export default function PersonForm({ mode, defaultValues, targetPersonId, allPer
         >
           {isSubmitting
             ? tf('submitting')
-            : mode === 'admin-add'
+            : (mode === 'admin-add' || mode === 'admin-edit')
               ? tf('save')
               : tf('submit')}
         </button>

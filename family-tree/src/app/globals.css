@@ -79,3 +79,10 @@
   box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.4);
   z-index: 10;
 }
+
+/* Connector lines rendered by react-family-tree as <i> elements */
+.tree-canvas i {
+  background-color: #7c3aed !important;
+  opacity: 0.4;
+  border-radius: 2px;
+}
