@@ -70,6 +70,24 @@ export async function addPersonDirect(values: PersonFormValues) {
         relationship_type: 'biological_child' as const,
       }))
     );
+
+    // Auto-link two parents as spouses so the tree layout engine can pair them
+    if (resolvedParents.length === 2) {
+      const [p1, p2] = resolvedParents;
+      const { data: existing } = await admin
+        .from('relationships')
+        .select('id')
+        .or(`and(person_a_id.eq.${p1},person_b_id.eq.${p2}),and(person_a_id.eq.${p2},person_b_id.eq.${p1})`)
+        .eq('relationship_type', 'spouse')
+        .maybeSingle();
+      if (!existing) {
+        await admin.from('relationships').insert({
+          person_a_id: p1,
+          person_b_id: p2,
+          relationship_type: 'spouse' as const,
+        });
+      }
+    }
   }
 
   if (resolvedSpouses.length) {
