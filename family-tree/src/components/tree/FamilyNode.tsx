@@ -24,7 +24,8 @@ export default function FamilyNode({ node, person, house, isSelected, onClick }:
   const style = getGenerationStyle(person.generation_number);
   const displayName = locale === 'ml' && person.name_ml ? person.name_ml : person.name_en;
   const photoUrl = getStorageUrl(person.profile_photo);
-  const isMarriedIn = node.parents.length === 0 && !person.is_root;
+  // A "married-in" person has no parents AND no children in the tree (pure spouse node)
+  const isMarriedIn = node.parents.length === 0 && node.children.length === 0 && !person.is_root;
 
   const years = person.birth_date
     ? `${person.birth_date.slice(0, 4)}${!person.is_alive && person.death_date ? ` – ${person.death_date.slice(0, 4)}` : '–'}`

@@ -76,9 +76,7 @@
   cursor: pointer;
 }
 
-/* Connector lines rendered by react-family-tree as <i> elements */
+/* Hide the default <i> connector elements — we render our own SVG lines */
 .tree-canvas i {
-  background-color: #94a3b8 !important;
-  opacity: 0.8;
-  border-radius: 1px;
+  display: none !important;
 }
